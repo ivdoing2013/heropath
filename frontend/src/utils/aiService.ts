@@ -115,12 +115,12 @@ function parseWangDaoyanResponse(text: string): WangDaoyanResponse {
 
 // 模拟对话（用于测试，无需后端）
 export async function mockChatWithWangDaoyan(
-  userInput: string,
+  _userInput: string,
   turnCount: number
 ): Promise<WangDaoyanResponse> {
   await new Promise(resolve => setTimeout(resolve, 1000))
 
-  const responses = [
+  const responses: WangDaoyanResponse[] = [
     {
       text: '有意思...让我再多了解一点。这个人物是什么样的性格？',
       storyType: null
@@ -133,7 +133,7 @@ export async function mockChatWithWangDaoyan(
       text: '这个设定很有潜力。我们开始构建故事框架吧？',
       storyType: 'hero',
       shouldGenerateCard: true,
-      cardType: 'character' as const
+      cardType: 'character'
     }
   ]
 
