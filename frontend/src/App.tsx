@@ -1,40 +1,33 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useRef, useEffect, useCallback } from 'react'
 import './App.css'
-import { chatWithWangDaoyan, mockChatWithWangDaoyan, checkBackendHealth, type ChatMessage, type WangDaoyanResponse } from './utils/aiService'
-
-interface Message {
-  id: string
-  sender: 'wang' | 'user'
-  text: string
-  type?: 'text' | 'story-card' | 'character-card' | 'world-card'
-  metadata?: any
-}
-
-interface StoryElement {
-  type: 'character' | 'world' | 'plot' | 'scene'
-  title: string
-  content: string
-  timestamp: number
-}
+import { useChatStore, type Message } from './stores'
+import { chatWithWangDaoyan, mockChatWithWangDaoyan, checkBackendHealth, type ChatMessage } from './utils/aiService'
 
 function App() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      id: 'welcome',
-      sender: 'wang',
-      text: '嗨，我是王编导。✨\n\n我见过太多故事胎死腹中——不是才华不够，是方向不清。\n\n告诉我，你想讲一个什么样的故事？',
-      type: 'text'
-    }
-  ])
-  const [inputText, setInputText] = useState('')
-  const [isTyping, setIsTyping] = useState(false)
-  const [storyElements, setStoryElements] = useState<StoryElement[]>([])
-  const [showSidebar, setShowSidebar] = useState(false)
-  const [conversationTurn, setConversationTurn] = useState(0)
-  const [detectedType, setDetectedType] = useState<string | null>(null)
-  const [backendAvailable, setBackendAvailable] = useState<boolean | null>(null)
+  // 从 Zustand Store 获取状态和操作
+  const {
+    messages,
+    inputText,
+    isTyping,
+    streamingText,
+    storyElements,
+    showSidebar,
+    conversationTurn,
+    detectedType,
+    backendAvailable,
+    addMessage,
+    setInputText,
+    clearInput,
+    setIsTyping,
+    setStreamingText,
+    addStoryElement,
+    setShowSidebar,
+    incrementTurn,
+    setDetectedType,
+    setBackendAvailable
+  } = useChatStore()
+
   const messagesEndRef = useRef<HTMLDivElement>(null)
-  const [streamingText, setStreamingText] = useState('')
 
   // 自动滚动到底部
   const scrollToBottom = () => {
@@ -51,7 +44,7 @@ function App() {
       setBackendAvailable(available)
       console.log('Backend available:', available)
     })
-  }, [])
+  }, [setBackendAvailable])
 
   // 构建对话历史
   const buildChatHistory = useCallback((): ChatMessage[] => {
@@ -67,7 +60,7 @@ function App() {
     setStreamingText('')
 
     try {
-      let response: WangDaoyanResponse
+      let response: { text: string; storyType?: 'lyric' | 'romance' | 'hero' | null; shouldGenerateCard?: boolean; cardType?: 'character' | 'world' | 'plot' }
 
       // 优先使用后端 API，如果不可用则使用模拟对话
       if (backendAvailable) {
@@ -88,8 +81,8 @@ function App() {
         type: 'text'
       }
 
-      setMessages(prev => [...prev, wangMessage])
-      setConversationTurn(prev => prev + 1)
+      addMessage(wangMessage)
+      incrementTurn()
 
       // 检测到的创作类型
       if (response.storyType) {
@@ -105,12 +98,12 @@ function App() {
 
     } catch (error) {
       console.error('Error:', error)
-      setMessages(prev => [...prev, {
+      addMessage({
         id: Date.now().toString(),
         sender: 'wang',
         text: '（王编导似乎在思考...能再说一遍吗？）',
         type: 'text'
-      }])
+      })
     } finally {
       setIsTyping(false)
       setStreamingText('')
@@ -118,25 +111,26 @@ function App() {
   }
 
   // 生成故事卡片
-  const generateStoryCard = (response: WangDaoyanResponse) => {
-    const newElement: StoryElement = {
-      type: response.cardType || 'character',
+  const generateStoryCard = (response: { cardType?: 'character' | 'world' | 'plot' }) => {
+    const elementType: 'character' | 'world' | 'plot' | 'scene' = response.cardType === 'character' ? 'character' : 'plot'
+    const newElement = {
+      type: elementType,
       title: response.cardType === 'character' ? '人物速写' : '故事要素',
       content: '根据我们的对话，这是一个关于\n• 主角在困境中寻找自我\n• 情感复杂而真实\n• 有强烈的成长弧光',
       timestamp: Date.now()
     }
 
-    setStoryElements([newElement])
+    addStoryElement(newElement)
     setShowSidebar(true)
 
     // 添加卡片消息
-    setMessages(prev => [...prev, {
+    addMessage({
       id: (Date.now() + 1).toString(),
       sender: 'wang',
       text: '我整理了一下我们聊的内容，你看看这个方向对吗？',
       type: 'story-card',
       metadata: newElement
-    }])
+    })
   }
 
   const handleSend = async () => {
@@ -149,9 +143,9 @@ function App() {
       type: 'text'
     }
 
-    setMessages(prev => [...prev, userMessage])
+    addMessage(userMessage)
     const currentInput = inputText
-    setInputText('')
+    clearInput()
 
     await callWangDaoyan(currentInput)
   }
