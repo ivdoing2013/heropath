@@ -1,5 +1,6 @@
-import { useState, useRef, useEffect } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import './App.css'
+import { chatWithWangDaoyan, mockChatWithWangDaoyan, ChatMessage, WangDaoyanResponse } from './utils/aiService'
 
 interface Message {
   id: string
@@ -21,7 +22,7 @@ function App() {
     {
       id: 'welcome',
       sender: 'wang',
-      text: '你好，我是王编导。✨\n\n我见过太多故事胎死腹中——不是才华不够，是方向不清。\n\n告诉我，你想讲一个什么样的故事？',
+      text: '嗨，我是王编导。✨\n\n我见过太多故事胎死腹中——不是才华不够，是方向不清。\n\n告诉我，你想讲一个什么样的故事？',
       type: 'text'
     }
   ])
@@ -29,7 +30,10 @@ function App() {
   const [isTyping, setIsTyping] = useState(false)
   const [storyElements, setStoryElements] = useState<StoryElement[]>([])
   const [showSidebar, setShowSidebar] = useState(false)
+  const [conversationTurn, setConversationTurn] = useState(0)
+  const [detectedType, setDetectedType] = useState<string | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
+  const [streamingText, setStreamingText] = useState('')
 
   // 自动滚动到底部
   const scrollToBottom = () => {
@@ -38,69 +42,112 @@ function App() {
 
   useEffect(() => {
     scrollToBottom()
+  }, [messages, streamingText])
+
+  // 构建对话历史
+  const buildChatHistory = useCallback((): ChatMessage[] => {
+    return messages.map(msg => ({
+      role: msg.sender === 'wang' ? 'assistant' : 'user',
+      content: msg.text
+    }))
   }, [messages])
 
-  // 模拟王编导思考并回复
-  const simulateWangResponse = async (userInput: string) => {
+  // 调用王编导 AI
+  const callWangDaoyan = async (userInput: string) => {
     setIsTyping(true)
-    
-    // 模拟思考时间
-    await new Promise(resolve => setTimeout(resolve, 1500))
-    
-    // 根据用户输入生成回复（简化版，实际应该调用AI）
-    const responses = [
-      '有意思的想法...让我帮你梳理一下。这个故事的核心冲突是什么？',
-      '我感受到了！主人公的内心挣扎很关键。能再多说说TA的处境吗？',
-      '这是个很好的起点。你觉得这个故事最打动人的瞬间会是什么？',
-      '明白了。让我为你整理一下刚才的灵感...',
-    ]
-    
-    const randomResponse = responses[Math.floor(Math.random() * responses.length)]
-    
-    // 如果是第三次对话，展示一个故事卡片
-    if (messages.length >= 4 && storyElements.length === 0) {
-      const newElement: StoryElement = {
-        type: 'character',
-        title: '主人公设定',
-        content: '根据你的描述，这是一个在困境中寻找自我的人物...',
-        timestamp: Date.now()
+    setStreamingText('')
+
+    try {
+      // 检查是否有 API Key
+      const hasApiKey = !!import.meta.env.VITE_DEEPSEEK_API_KEY
+
+      let response: WangDaoyanResponse
+
+      if (hasApiKey) {
+        // 使用真实 API
+        const history = buildChatHistory()
+        response = await chatWithWangDaoyan(history, (text) => {
+          setStreamingText(text)
+        })
+      } else {
+        // 使用模拟对话
+        response = await mockChatWithWangDaoyan(userInput, conversationTurn)
       }
-      setStoryElements([newElement])
-      setShowSidebar(true)
-      
+
+      // 添加 AI 回复
+      const wangMessage: Message = {
+        id: Date.now().toString(),
+        sender: 'wang',
+        text: response.text,
+        type: 'text'
+      }
+
+      setMessages(prev => [...prev, wangMessage])
+      setConversationTurn(prev => prev + 1)
+
+      // 检测到的创作类型
+      if (response.storyType) {
+        setDetectedType(response.storyType)
+      }
+
+      // 如果需要生成卡片
+      if (response.shouldGenerateCard) {
+        setTimeout(() => {
+          generateStoryCard(response)
+        }, 500)
+      }
+
+    } catch (error) {
+      console.error('Error:', error)
       setMessages(prev => [...prev, {
         id: Date.now().toString(),
         sender: 'wang',
-        text: '我根据你的描述，初步梳理了主人公的轮廓。你可以随时调整。',
-        type: 'story-card',
-        metadata: newElement
-      }])
-    } else {
-      setMessages(prev => [...prev, {
-        id: Date.now().toString(),
-        sender: 'wang',
-        text: randomResponse,
+        text: '（王编导似乎在思考...能再说一遍吗？）',
         type: 'text'
       }])
+    } finally {
+      setIsTyping(false)
+      setStreamingText('')
     }
-    
-    setIsTyping(false)
+  }
+
+  // 生成故事卡片
+  const generateStoryCard = (response: WangDaoyanResponse) => {
+    const newElement: StoryElement = {
+      type: response.cardType || 'character',
+      title: response.cardType === 'character' ? '人物速写' : '故事要素',
+      content: '根据我们的对话，这是一个关于\n• 主角在困境中寻找自我\n• 情感复杂而真实\n• 有强烈的成长弧光',
+      timestamp: Date.now()
+    }
+
+    setStoryElements([newElement])
+    setShowSidebar(true)
+
+    // 添加卡片消息
+    setMessages(prev => [...prev, {
+      id: (Date.now() + 1).toString(),
+      sender: 'wang',
+      text: '我整理了一下我们聊的内容，你看看这个方向对吗？',
+      type: 'story-card',
+      metadata: newElement
+    }])
   }
 
   const handleSend = async () => {
-    if (!inputText.trim()) return
-    
+    if (!inputText.trim() || isTyping) return
+
     const userMessage: Message = {
       id: Date.now().toString(),
       sender: 'user',
       text: inputText,
       type: 'text'
     }
-    
+
     setMessages(prev => [...prev, userMessage])
+    const currentInput = inputText
     setInputText('')
-    
-    await simulateWangResponse(inputText)
+
+    await callWangDaoyan(currentInput)
   }
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -108,6 +155,16 @@ function App() {
       e.preventDefault()
       handleSend()
     }
+  }
+
+  // 获取创作类型标签
+  const getTypeLabel = (type: string | null) => {
+    const labels: Record<string, { text: string; emoji: string }> = {
+      lyric: { text: '抒情散文', emoji: '🌸' },
+      romance: { text: '男欢女爱', emoji: '💕' },
+      hero: { text: '英雄之旅', emoji: '⚔️' }
+    }
+    return type ? labels[type] : null
   }
 
   return (
@@ -121,8 +178,12 @@ function App() {
             <span className="logo-text">HeroPath</span>
           </div>
           <div className="header-actions">
+            {detectedType && (
+              <div className="type-badge">
+                {getTypeLabel(detectedType)?.emoji} {getTypeLabel(detectedType)?.text}
+              </div>
+            )}
             <button className="icon-btn" title="新建故事">+</button>
-            <button className="icon-btn" title="设置">⚙️</button>
           </div>
         </header>
 
@@ -130,8 +191,8 @@ function App() {
         <div className="messages-wrapper">
           <div className="messages-list">
             {messages.map((msg, index) => (
-              <div 
-                key={msg.id} 
+              <div
+                key={msg.id}
                 className={`message-row ${msg.sender} ${index === 0 ? 'first-message' : ''}`}
               >
                 {msg.sender === 'wang' && (
@@ -142,7 +203,7 @@ function App() {
                     </div>
                   </div>
                 )}
-                
+
                 <div className="message-content">
                   {msg.sender === 'wang' && (
                     <div className="sender-name">王编导</div>
@@ -152,24 +213,46 @@ function App() {
                       <p key={i}>{line}</p>
                     ))}
                   </div>
-                  
+
                   {/* 故事卡片展示 */}
                   {msg.type === 'story-card' && msg.metadata && (
                     <div className="generated-card">
                       <div className="card-header">
-                        <span className="card-icon">👤</span>
+                        <span className="card-icon">📋</span>
                         <span>{msg.metadata.title}</span>
                       </div>
                       <div className="card-body">
-                        {msg.metadata.content}
+                        {msg.metadata.content.split('\n').map((line: string, i: number) => (
+                          <div key={i}>{line}</div>
+                        ))}
                       </div>
                     </div>
                   )}
                 </div>
               </div>
             ))}
-            
-            {isTyping && (
+
+            {/* 流式输出 */}
+            {isTyping && streamingText && (
+              <div className="message-row wang streaming">
+                <div className="wang-avatar">
+                  <div className="star-icon pulsing">
+                    <span className="star-1">✦</span>
+                    <span className="star-2">✦</span>
+                  </div>
+                </div>
+                <div className="message-content">
+                  <div className="sender-name">王编导</div>
+                  <div className="message-bubble">
+                    {streamingText}
+                    <span className="cursor-blink">▊</span>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 思考中 */}
+            {isTyping && !streamingText && (
               <div className="message-row wang typing">
                 <div className="wang-avatar">
                   <div className="star-icon pulsing">
@@ -187,7 +270,7 @@ function App() {
                 </div>
               </div>
             )}
-            
+
             <div ref={messagesEndRef} />
           </div>
         </div>
@@ -202,11 +285,12 @@ function App() {
               placeholder="告诉王编导你的想法..."
               rows={1}
               className="message-input"
+              disabled={isTyping}
             />
-            <button 
-              onClick={handleSend} 
-              className={`send-btn ${inputText.trim() ? 'active' : ''}`}
-              disabled={!inputText.trim()}
+            <button
+              onClick={handleSend}
+              className={`send-btn ${inputText.trim() && !isTyping ? 'active' : ''}`}
+              disabled={!inputText.trim() || isTyping}
             >
               <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M22 2L11 13M22 2l-7 20-4-9-9-4 20-7z" />
@@ -214,7 +298,7 @@ function App() {
             </button>
           </div>
           <div className="input-hint">
-            按 Enter 发送，Shift + Enter 换行
+            {isTyping ? '王编导正在思考...' : '按 Enter 发送，Shift + Enter 换行'}
           </div>
         </div>
       </main>
@@ -226,7 +310,7 @@ function App() {
             <h3>故事大纲</h3>
             <button className="close-sidebar" onClick={() => setShowSidebar(false)}>×</button>
           </div>
-          
+
           <div className="sidebar-content">
             {storyElements.length === 0 ? (
               <div className="empty-state">
@@ -252,7 +336,7 @@ function App() {
               </div>
             )}
           </div>
-          
+
           <div className="sidebar-footer">
             <div className="progress-hint">
               <span className="torch-icon">🔥</span>

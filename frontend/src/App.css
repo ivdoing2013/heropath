@@ -80,6 +80,17 @@ body {
 .header-actions {
   display: flex;
   gap: 8px;
+  align-items: center;
+}
+
+.type-badge {
+  padding: 6px 12px;
+  background: rgba(255, 107, 107, 0.2);
+  border: 1px solid rgba(255, 107, 107, 0.4);
+  border-radius: 20px;
+  font-size: 13px;
+  color: var(--accent-warm);
+  font-weight: 500;
 }
 
 .icon-btn {
@@ -231,6 +242,22 @@ body {
   background: var(--bg-tertiary);
   color: var(--text-primary);
   text-align: right;
+}
+
+/* 流式输出样式 */
+.message-row.wang.streaming .message-bubble {
+  background: transparent;
+}
+
+.cursor-blink {
+  animation: blink 1s step-end infinite;
+  color: var(--accent-gold);
+  margin-left: 2px;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
 }
 
 /* 第一条欢迎消息的特殊样式 */
