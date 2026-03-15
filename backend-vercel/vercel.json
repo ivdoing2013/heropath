@@ -17,9 +17,6 @@
       "dest": "/api/index.js"
     }
   ],
-  "env": {
-    "DEEPSEEK_API_KEY": "sk-2dcd2ddc13484a6ba44ca4028473af78"
-  },
   "headers": [
     {
       "source": "/api/(.*)",
