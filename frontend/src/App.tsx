@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
 import './App.css'
-import { chatWithWangDaoyan, mockChatWithWangDaoyan, ChatMessage, WangDaoyanResponse } from './utils/aiService'
+import { chatWithWangDaoyan, mockChatWithWangDaoyan, checkBackendHealth, ChatMessage, WangDaoyanResponse } from './utils/aiService'
 
 interface Message {
   id: string
@@ -32,6 +32,7 @@ function App() {
   const [showSidebar, setShowSidebar] = useState(false)
   const [conversationTurn, setConversationTurn] = useState(0)
   const [detectedType, setDetectedType] = useState<string | null>(null)
+  const [backendAvailable, setBackendAvailable] = useState<boolean | null>(null)
   const messagesEndRef = useRef<HTMLDivElement>(null)
   const [streamingText, setStreamingText] = useState('')
 
@@ -43,6 +44,14 @@ function App() {
   useEffect(() => {
     scrollToBottom()
   }, [messages, streamingText])
+
+  // 检查后端服务状态
+  useEffect(() => {
+    checkBackendHealth().then(available => {
+      setBackendAvailable(available)
+      console.log('Backend available:', available)
+    })
+  }, [])
 
   // 构建对话历史
   const buildChatHistory = useCallback((): ChatMessage[] => {
@@ -58,13 +67,10 @@ function App() {
     setStreamingText('')
 
     try {
-      // 检查是否有 API Key
-      const hasApiKey = !!import.meta.env.VITE_DEEPSEEK_API_KEY
-
       let response: WangDaoyanResponse
 
-      if (hasApiKey) {
-        // 使用真实 API
+      // 优先使用后端 API，如果不可用则使用模拟对话
+      if (backendAvailable) {
         const history = buildChatHistory()
         response = await chatWithWangDaoyan(history, (text) => {
           setStreamingText(text)

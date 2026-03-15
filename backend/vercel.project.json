@@ -1,0 +1,8 @@
+{
+  "projectSettings": {
+    "framework": null,
+    "buildCommand": null,
+    "outputDirectory": null,
+    "installCommand": "npm install"
+  }
+}

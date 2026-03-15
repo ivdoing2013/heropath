@@ -1,0 +1,7 @@
+{
+  "name": "heropath-backend",
+  "version": "1.0.0",
+  "description": "HeroPath 后端 API - 王编导 AI 编剧导师 (Vercel Serverless)",
+  "scripts": {},
+  "dependencies": {}
+}
