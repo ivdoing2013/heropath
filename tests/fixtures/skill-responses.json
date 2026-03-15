@@ -1,0 +1,217 @@
+{
+  "guide_dialog_skill": {
+    "lyric_01_guide_ordinary_world": {
+      "input": {
+        "creator_type": "lyric",
+        "session_context": {
+          "session_id": "session_001",
+          "current_stage": 1
+        }
+      },
+      "expected_output": {
+        "guide_message": "string",
+        "suggested_questions": "array",
+        "dialog_state": "object"
+      },
+      "mock_response": {
+        "guide_message": "让我们一起走进主角的日常生活。请告诉我，你的主角通常在什么时候开始一天？",
+        "suggested_questions": [
+          "他/她通常几点起床？",
+          "最喜欢的地方是哪里？",
+          "有什么固定的习惯吗？"
+        ],
+        "dialog_state": {
+          "stage": 1,
+          "checkpoint_filled": [],
+          "turn_count": 1
+        }
+      }
+    },
+    "romance_01_guide_ordinary_world": {
+      "mock_response": {
+        "guide_message": "让我们先认识一下你的女主角！她是个什么样的女孩？",
+        "suggested_questions": [
+          "她的职业是什么？",
+          "她的感情状态如何？",
+          "有什么特别的魅力点？"
+        ]
+      }
+    },
+    "hero_01_guide_ordinary_world": {
+      "mock_response": {
+        "guide_message": "每个英雄都有一个起点。让我们从主角的平凡世界开始...",
+        "suggested_questions": [
+          "主角的日常生活是什么？",
+          "有什么不满或渴望？",
+          "身边的人如何看待他/她？"
+        ]
+      }
+    }
+  },
+  "info_extract_skill": {
+    "lyric_01_extract_ordinary_world": {
+      "input": {
+        "user_input": "她叫小雨，是个咖啡师。每天清晨六点就到店里，为第一批客人准备咖啡。她总是一成不变地为自己做一杯拿铁，坐在窗边看街景。她觉得生活就是这样平淡，但内心深处总觉得缺少什么。",
+        "extraction_schema": {
+          "daily_life": "日常生活描述",
+          "latent_dissatisfaction": "潜藏缺憾",
+          "emotional_anchor": "情感锚点",
+          "hidden_desire": "隐藏愿望",
+          "world_setting": "世界设定"
+        }
+      },
+      "mock_response": {
+        "extracted_data": {
+          "daily_life": "清晨六点第一个到咖啡馆，为客人准备咖啡",
+          "latent_dissatisfaction": "觉得生活平淡，内心觉得缺少什么",
+          "emotional_anchor": "每天不变的拿铁，窗边的位置",
+          "hidden_desire": "渴望生活中出现变化",
+          "world_setting": "现代都市咖啡馆"
+        },
+        "confidence_scores": {
+          "daily_life": 0.95,
+          "latent_dissatisfaction": 0.85,
+          "emotional_anchor": 0.9,
+          "hidden_desire": 0.8,
+          "world_setting": 0.9
+        }
+      }
+    }
+  },
+  "completeness_check_skill": {
+    "lyric_01_check_completeness": {
+      "input": {
+        "extracted_data": {
+          "daily_life": "清晨六点第一个到咖啡馆",
+          "latent_dissatisfaction": "觉得生活平淡",
+          "emotional_anchor": "每天不变的拿铁",
+          "hidden_desire": "渴望变化",
+          "world_setting": "现代都市"
+        },
+        "required_fields": ["daily_life", "latent_dissatisfaction", "emotional_anchor", "hidden_desire", "world_setting"]
+      },
+      "mock_response": {
+        "completeness_report": {
+          "overall_score": 0.92,
+          "field_scores": {
+            "daily_life": 0.9,
+            "latent_dissatisfaction": 0.95,
+            "emotional_anchor": 0.95,
+            "hidden_desire": 0.9,
+            "world_setting": 0.9
+          },
+          "missing_items": []
+        },
+        "can_proceed": true,
+        "follow_up_questions": []
+      }
+    }
+  },
+  "golden_three_generator": {
+    "input": {
+      "creator_type": "lyric",
+      "stage_outputs": {
+        "stage_1": { /* ... */ },
+        "stage_2": { /* ... */ },
+        "stage_3": { /* ... */ }
+      }
+    },
+    "mock_response": {
+      "chapter_1": {
+        "title": "清晨六点的拿铁",
+        "content": "清晨六点，小雨推开了咖啡馆的门...",
+        "word_count": 3200,
+        "key_elements": ["日常场景", "情感铺垫", "悬念暗示"]
+      },
+      "chapter_2": {
+        "title": "便签上的字迹",
+        "content": "那天的拿铁味道有些不同...",
+        "word_count": 3500,
+        "key_elements": ["召唤事件", "内心波动", "冲突萌芽"]
+      },
+      "chapter_3": {
+        "title": "窗外的雨",
+        "content": "小雨站在窗前，看着雨中的街道...",
+        "word_count": 3100,
+        "key_elements": ["转折", "决定", "悬念"]
+      },
+      "chapter_analysis": {
+        "hook_strength": 0.88,
+        "tension_curve": [0.3, 0.5, 0.8],
+        "reader_retention": 0.85
+      }
+    }
+  },
+  "heartbeat_detect_skill": {
+    "flow_detection": {
+      "input": {
+        "recent_content": "窗外的雨越下越大，就像她此刻的心情...",
+        "typing_pattern": {
+          "speed_wpm": 85,
+          "baseline_wpm": 40,
+          "continuous_minutes": 8
+        },
+        "edit_behavior": {
+          "delete_rate": 0.01,
+          "pause_frequency": 0.1
+        }
+      },
+      "expected_result": {
+        "heartbeat_detected": true,
+        "heartbeat_type": "flow",
+        "confidence": 0.92
+      }
+    },
+    "emotional_peak_detection": {
+      "input": {
+        "recent_content": "眼泪终于落下，不是因为悲伤，而是因为她终于明白，有些告别，是为了更好的重逢。",
+        "emotion_analysis": {
+          "intensity": 0.92,
+          "sentiment": "bittersweet"
+        }
+      },
+      "expected_result": {
+        "heartbeat_detected": true,
+        "heartbeat_type": "emotional",
+        "confidence": 0.89
+      }
+    },
+    "golden_quote_detection": {
+      "input": {
+        "sentence": "有些人，一旦遇见，便是一眼万年；有些心动，一旦开始，便覆水难收。",
+        "quality_metrics": {
+          "uniqueness": 0.95,
+          "rhythm": 0.9,
+          "imagery": 0.88
+        }
+      },
+      "expected_result": {
+        "heartbeat_detected": true,
+        "heartbeat_type": "golden_quote",
+        "confidence": 0.94,
+        "suggested_message": "这句写得真好，我帮你记下来了 💫"
+      }
+    }
+  },
+  "version_control_skill": {
+    "auto_save": {
+      "trigger": "content_change > 100 chars || time_elapsed > 30s",
+      "expected_behavior": "create version with type 'auto_saved'"
+    },
+    "heartbeat_save": {
+      "trigger": "heartbeat_detected",
+      "expected_behavior": "create version with type 'heartbeat' and heartbeat metadata"
+    },
+    "rollback": {
+      "input": {
+        "chapter_id": "chapter_001",
+        "target_version": "v1.1.0"
+      },
+      "expected_result": {
+        "rollback_success": true,
+        "restored_content": "...",
+        "previous_content_backup": "..."
+      }
+    }
+  }
+}

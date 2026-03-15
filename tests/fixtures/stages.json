@@ -1,0 +1,106 @@
+{
+  "stages": {
+    "departure": [
+      {
+        "number": 1,
+        "name": "平凡世界",
+        "name_en": "Ordinary World",
+        "description": "描绘主角的日常生活",
+        "checkpoints": ["daily_life", "latent_dissatisfaction", "emotional_anchor", "hidden_desire", "world_setting"],
+        "skills": ["guide_ordinary_world", "extract_ordinary_world", "check_completeness"]
+      },
+      {
+        "number": 2,
+        "name": "冒险召唤",
+        "name_en": "Call to Adventure",
+        "description": "发现打破平静的召唤事件",
+        "checkpoints": ["call_event", "challenge_to_status_quo", "perceived_risks"],
+        "skills": ["guide_call", "design_call", "check_call"]
+      },
+      {
+        "number": 3,
+        "name": "拒斥召唤",
+        "name_en": "Refusal of the Call",
+        "description": "主角犹豫和抗拒",
+        "checkpoints": ["refusal_reason", "fear_sources", "external_pressure"],
+        "skills": ["guide_refusal", "analyze_refusal", "check_refusal"]
+      },
+      {
+        "number": 4,
+        "name": "遇见导师",
+        "name_en": "Meeting the Mentor",
+        "description": "获得指导和帮助",
+        "checkpoints": ["mentor_profile", "guidance_content", "transformation_seed"],
+        "skills": ["guide_mentor", "design_mentor", "check_mentor"]
+      },
+      {
+        "number": 5,
+        "name": "跨越门槛",
+        "name_en": "Crossing the First Threshold",
+        "description": "踏入未知世界",
+        "checkpoints": ["threshold_event", "new_world", "identity_shift"],
+        "skills": ["guide_threshold", "design_threshold", "check_threshold"]
+      }
+    ],
+    "initiation": [
+      {
+        "number": 6,
+        "name": "考验、盟友、敌人",
+        "name_en": "Tests, Allies, Enemies",
+        "description": "新世界的挑战和关系",
+        "checkpoints": ["allies", "enemies", "tests", "growth_milestones"],
+        "skills": ["guide_tests", "build_relationships", "check_tests"]
+      },
+      {
+        "number": 7,
+        "name": "接近洞穴",
+        "name_en": "Approach to the Inmost Cave",
+        "description": "接近核心挑战",
+        "checkpoints": ["cave_description", "obstacles", "preparations"],
+        "skills": ["guide_approach", "design_approach", "check_approach"]
+      },
+      {
+        "number": 8,
+        "name": "磨难",
+        "name_en": "The Ordeal",
+        "description": "最严峻的考验",
+        "checkpoints": ["ordeal_event", "life_death_moment", "inner_demon"],
+        "skills": ["guide_ordeal", "design_ordeal", "check_ordeal"]
+      },
+      {
+        "number": 9,
+        "name": "奖励",
+        "name_en": "Reward",
+        "description": "获得成长的关键",
+        "checkpoints": ["reward_content", "transformation", "new_abilities"],
+        "skills": ["guide_reward", "design_reward", "check_reward"]
+      }
+    ],
+    "return": [
+      {
+        "number": 10,
+        "name": "归途",
+        "name_en": "The Road Back",
+        "description": "开始返程",
+        "checkpoints": ["return_motivation", "new_challenges", "changed_perspective"],
+        "skills": ["guide_return", "design_return", "check_return"]
+      },
+      {
+        "number": 11,
+        "name": "复活",
+        "name_en": "Resurrection",
+        "description": "最后的净化和蜕变",
+        "checkpoints": ["final_test", "sacrifice_moment", "ultimate_transformation"],
+        "skills": ["guide_resurrection", "design_resurrection", "check_resurrection"]
+      },
+      {
+        "number": 12,
+        "name": "携万能药归来",
+        "name_en": "Return with the Elixir",
+        "description": "带回改变的礼物",
+        "checkpoints": ["elixir_definition", "return_impact", "story_closure"],
+        "skills": ["guide_elixir", "design_elixir", "complete_story"]
+      }
+    ]
+  }
+}

@@ -1,0 +1,69 @@
+{
+  "sessions": [
+    {
+      "id": "session_001",
+      "user_id": "user_001",
+      "title": "咖啡馆的女孩",
+      "creator_type": "lyric",
+      "current_stage": 3,
+      "status": "active",
+      "context_data": {
+        "stage_1": {
+          "daily_life": "清晨六点，她总是第一个到咖啡馆",
+          "latent_dissatisfaction": "生活一成不变",
+          "emotional_anchor": "那杯永远不变的拿铁",
+          "hidden_desire": "渴望突破现状",
+          "world_setting": "现代都市"
+        },
+        "stage_2": {
+          "call_event": "陌生男人留下的奇怪便签",
+          "challenge_to_status_quo": "暗示她知道一个秘密",
+          "perceived_risks": "可能卷入危险"
+        }
+      },
+      "started_at": "2024-03-15T10:00:00Z",
+      "last_active_at": "2024-03-15T14:30:00Z"
+    },
+    {
+      "id": "session_002",
+      "user_id": "user_002",
+      "title": "霸道总裁爱上我",
+      "creator_type": "romance",
+      "current_stage": 6,
+      "status": "active",
+      "context_data": {
+        "stage_1": {
+          "daily_life": "普通白领，每天朝九晚五",
+          "latent_dissatisfaction": "感情生活空白",
+          "emotional_anchor": "前男友送的项链",
+          "hidden_desire": "遇到真爱",
+          "world_setting": "现代职场"
+        },
+        "stage_2": {
+          "call_event": "公司被收购，新总裁是前男友"
+        },
+        "stage_5": {
+          "threshold_crossing": "决定接受调到总部",
+          "new_world": "高层社交圈"
+        }
+      },
+      "started_at": "2024-03-10T09:00:00Z",
+      "last_active_at": "2024-03-14T18:00:00Z"
+    },
+    {
+      "id": "session_003",
+      "user_id": "user_003",
+      "title": "龙骑士传说",
+      "creator_type": "hero",
+      "current_stage": 12,
+      "status": "completed",
+      "context_data": {},
+      "started_at": "2024-02-01T08:00:00Z",
+      "completed_at": "2024-02-28T20:00:00Z"
+    }
+  ],
+  "new_session": {
+    "title": "新的创作",
+    "creator_type": "lyric"
+  }
+}

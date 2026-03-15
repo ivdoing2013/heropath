@@ -1,0 +1,42 @@
+{
+  "users": [
+    {
+      "id": "user_001",
+      "email": "test@example.com",
+      "username": "测试用户",
+      "creator_type": "lyric",
+      "preferences": {
+        "wangdaoyan_style": "gentle",
+        "auto_save_interval": 30,
+        "heartbeat_notifications": true
+      }
+    },
+    {
+      "id": "user_002",
+      "email": "romance@example.com",
+      "username": "言情创作者",
+      "creator_type": "romance",
+      "preferences": {
+        "wangdaoyan_style": "enthusiastic",
+        "auto_save_interval": 60,
+        "heartbeat_notifications": true
+      }
+    },
+    {
+      "id": "user_003",
+      "email": "hero@example.com",
+      "username": "英雄创作者",
+      "creator_type": "hero",
+      "preferences": {
+        "wangdaoyan_style": "motivational",
+        "auto_save_interval": 30,
+        "heartbeat_notifications": false
+      }
+    }
+  ],
+  "new_user": {
+    "email": "newuser@example.com",
+    "username": "新用户",
+    "password": "TestPass123!"
+  }
+}

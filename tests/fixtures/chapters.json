@@ -1,0 +1,63 @@
+{
+  "chapters": [
+    {
+      "id": "chapter_001",
+      "session_id": "session_001",
+      "stage_id": "stage_03",
+      "chapter_number": 1,
+      "title": "清晨六点的拿铁",
+      "content": "清晨六点，小雨推开了咖啡馆的门。晨曦微露，街道还沉浸在昨夜的宁静中...",
+      "word_count": 3200,
+      "heartbeats": [
+        {
+          "id": "hb_001",
+          "position": 1250,
+          "type": "golden_quote",
+          "note": "环境描写的氛围感很好",
+          "content_snapshot": "窗外的梧桐叶上挂着露珠，在晨光中闪烁，像是昨夜星星遗落的碎片。"
+        }
+      ],
+      "versions": [
+        {
+          "id": "v1.0.0",
+          "type": "user_saved",
+          "created_at": "2024-03-15T10:30:00Z",
+          "word_count": 2800
+        },
+        {
+          "id": "v1.0.1",
+          "type": "auto_saved",
+          "created_at": "2024-03-15T11:00:00Z",
+          "word_count": 2950
+        },
+        {
+          "id": "v1.1.0",
+          "type": "heartbeat",
+          "created_at": "2024-03-15T11:30:00Z",
+          "word_count": 3200,
+          "metadata": {
+            "heartbeat_type": "flow",
+            "commit_message": "心流状态：环境描写段落"
+          }
+        }
+      ]
+    }
+  ],
+  "golden_three_example": {
+    "chapter_1": {
+      "title": "第一章：平凡的清晨",
+      "hook": "那杯咖啡的味道，她永远不会忘记。",
+      "content": "清晨六点，闹钟还没响，小雨已经睁开了眼睛...",
+      "ending": "她不知道，今天将是改变一切的开始。"
+    },
+    "chapter_2": {
+      "title": "第二章：意外的便签",
+      "content": "..."
+    },
+    "chapter_3": {
+      "title": "第三章：雨夜的抉择",
+      "content": "...",
+      "cliffhanger": "门铃响了，她知道是谁。"
+    }
+  }
+}

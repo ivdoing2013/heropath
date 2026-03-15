@@ -1,0 +1,310 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// 用户模型
+model User {
+  id            String    @id @default(uuid())
+  email         String    @unique
+  username      String
+  passwordHash  String    @map("password_hash")
+  creatorType   CreatorType? @map("creator_type")
+  preferences   Json      @default("{}")
+  avatar        String?
+  
+  // 关联
+  sessions      Session[]
+  
+  // 时间戳
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+
+  @@map("users")
+}
+
+// 创作者类型枚举
+enum CreatorType {
+  LYRIC     @map("lyric")      // 抒情散文
+  ROMANCE   @map("romance")    // 言情
+  HERO      @map("hero")       // 英雄之旅
+
+  @@map("creator_type")
+}
+
+// 会话模型
+model Session {
+  id            String    @id @default(uuid())
+  userId        String    @map("user_id")
+  title         String?
+  creatorType   CreatorType @map("creator_type")
+  currentStage  Int       @default(1) @map("current_stage")
+  status        SessionStatus @default(ACTIVE)
+  contextData   Json      @default("{}") @map("context_data")
+  
+  // 时间戳
+  startedAt     DateTime  @default(now()) @map("started_at")
+  lastActiveAt  DateTime  @default(now()) @map("last_active_at")
+  completedAt   DateTime? @map("completed_at")
+  
+  // 关联
+  user          User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  stages        Stage[]
+  chapters      Chapter[]
+  heartbeats    Heartbeat[]
+  logs          Log[]
+  messages      Message[]
+
+  @@index([userId])
+  @@map("sessions")
+}
+
+// 会话状态枚举
+enum SessionStatus {
+  ACTIVE    @map("active")
+  PAUSED    @map("paused")
+  COMPLETED @map("completed")
+
+  @@map("session_status")
+}
+
+// 阶段模型
+model Stage {
+  id            String    @id @default(uuid())
+  sessionId     String    @map("session_id")
+  stageNumber   Int       @map("stage_number")
+  stageName     String    @map("stage_name")
+  stageKey      String    @map("stage_key") // ordinary_world, call_to_adventure, etc.
+  status        StageStatus @default(IN_PROGRESS)
+  checkpoints   Json      @default("[]")
+  outputs       Json      @default("{}")
+  
+  // 时间戳
+  startedAt     DateTime  @default(now()) @map("started_at")
+  completedAt   DateTime? @map("completed_at")
+  
+  // 关联
+  session       Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  chapters      Chapter[]
+
+  @@unique([sessionId, stageNumber])
+  @@index([sessionId])
+  @@map("stages")
+}
+
+// 阶段状态枚举
+enum StageStatus {
+  IN_PROGRESS   @map("in_progress")
+  COMPLETED     @map("completed")
+  NEED_REVIEW   @map("need_review")
+  ROLLED_BACK   @map("rolled_back")
+
+  @@map("stage_status")
+}
+
+// 章节模型
+model Chapter {
+  id            String    @id @default(uuid())
+  sessionId     String    @map("session_id")
+  stageId       String?   @map("stage_id")
+  chapterNumber Int?      @map("chapter_number")
+  title         String?
+  content       String    @db.Text
+  wordCount     Int       @default(0) @map("word_count")
+  
+  // 时间戳
+  createdAt     DateTime  @default(now()) @map("created_at")
+  updatedAt     DateTime  @updatedAt @map("updated_at")
+  
+  // 关联
+  session       Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  stage         Stage?    @relation(fields: [stageId], references: [id])
+  versions      Version[]
+  heartbeats    Heartbeat[]
+  quotes        Quote[]
+
+  @@index([sessionId])
+  @@index([stageId])
+  @@map("chapters")
+}
+
+// 版本模型
+model Version {
+  id              String      @id @default(uuid())
+  chapterId       String      @map("chapter_id")
+  versionNumber   String      @map("version_number") // e.g., "1.0.0"
+  content         String      @db.Text
+  versionType     VersionType @map("version_type")
+  metadata        Json        @default("{}")
+  parentVersionId String?     @map("parent_version_id")
+  createdBy       String      @default("system") @map("created_by") // system, user
+  commitMessage   String?     @map("commit_message")
+  
+  // 时间戳
+  createdAt       DateTime    @default(now()) @map("created_at")
+  
+  // 关联
+  chapter         Chapter     @relation(fields: [chapterId], references: [id], onDelete: Cascade)
+  parentVersion   Version?    @relation("VersionToVersion", fields: [parentVersionId], references: [id])
+  childVersions   Version[]   @relation("VersionToVersion")
+  heartbeats      Heartbeat[]
+
+  @@index([chapterId])
+  @@index([parentVersionId])
+  @@map("versions")
+}
+
+// 版本类型枚举
+enum VersionType {
+  AUTO_SAVED    @map("auto_saved")
+  USER_SAVED    @map("user_saved")
+  HEARTBEAT     @map("heartbeat")
+  BRANCH        @map("branch")
+
+  @@map("version_type")
+}
+
+// 心跳模型
+model Heartbeat {
+  id              String        @id @default(uuid())
+  sessionId       String        @map("session_id")
+  chapterId       String?       @map("chapter_id")
+  versionId       String?       @map("version_id")
+  heartbeatType   HeartbeatType @map("heartbeat_type")
+  position        Int?
+  contentSnapshot String?       @map("content_snapshot") @db.Text
+  note            String?
+  triggers        Json          @default("[]")
+  qualityScore    Float?        @map("quality_score")
+  
+  // 时间戳
+  createdAt       DateTime      @default(now()) @map("created_at")
+  
+  // 关联
+  session         Session       @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  chapter         Chapter?      @relation(fields: [chapterId], references: [id])
+  version         Version?      @relation(fields: [versionId], references: [id])
+
+  @@index([sessionId])
+  @@index([chapterId])
+  @@map("heartbeats")
+}
+
+// 心跳类型枚举
+enum HeartbeatType {
+  FLOW          @map("flow")           // 心流状态
+  EMOTIONAL     @map("emotional")      // 情感高潮
+  GOLDEN_QUOTE  @map("golden_quote")   // 金句诞生
+  PLOT_TWIST    @map("plot_twist")     // 情节转折
+  USER_MARKED   @map("user_marked")    // 用户标记
+
+  @@map("heartbeat_type")
+}
+
+// 金句模型
+model Quote {
+  id            String    @id @default(uuid())
+  sessionId     String    @map("session_id")
+  chapterId     String?   @map("chapter_id")
+  content       String    @db.Text
+  context       String?   @db.Text
+  qualityScores Json      @default("{}") @map("quality_scores")
+  tags          String[]
+  usedCount     Int       @default(0) @map("used_count")
+  starred       Boolean   @default(false)
+  
+  // 时间戳
+  createdAt     DateTime  @default(now()) @map("created_at")
+  
+  // 关联
+  chapter       Chapter?  @relation(fields: [chapterId], references: [id])
+
+  @@index([sessionId])
+  @@index([chapterId])
+  @@map("quotes")
+}
+
+// 日志模型
+model Log {
+  id          String    @id @default(uuid())
+  sessionId   String    @map("session_id")
+  eventType   String    @map("event_type")
+  eventData   Json      @default("{}") @map("event_data")
+  
+  // 时间戳
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  // 关联
+  session     Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([eventType])
+  @@index([createdAt])
+  @@map("logs")
+}
+
+// 对话消息模型
+model Message {
+  id          String    @id @default(uuid())
+  sessionId   String    @map("session_id")
+  role        MessageRole
+  content     String    @db.Text
+  skillId     String?   @map("skill_id")
+  metadata    Json      @default("{}")
+  
+  // 时间戳
+  createdAt   DateTime  @default(now()) @map("created_at")
+  
+  // 关联
+  session     Session   @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+
+  @@index([sessionId])
+  @@index([createdAt])
+  @@map("messages")
+}
+
+// 消息角色枚举
+enum MessageRole {
+  USER      @map("user")
+  ASSISTANT @map("assistant")
+  SYSTEM    @map("system")
+
+  @@map("message_role")
+}
+
+// Skill执行记录模型
+model SkillExecution {
+  id              String    @id @default(uuid())
+  sessionId       String    @map("session_id")
+  skillId         String    @map("skill_id")
+  skillType       String    @map("skill_type")
+  inputData       Json      @map("input_data")
+  outputData      Json?     @map("output_data")
+  status          ExecutionStatus @default(PENDING)
+  executionTimeMs Int?      @map("execution_time_ms")
+  errorMessage    String?   @map("error_message")
+  
+  // 时间戳
+  startedAt       DateTime  @default(now()) @map("started_at")
+  completedAt     DateTime? @map("completed_at")
+
+  @@index([sessionId])
+  @@index([skillId])
+  @@index([startedAt])
+  @@map("skill_executions")
+}
+
+// 执行状态枚举
+enum ExecutionStatus {
+  PENDING   @map("pending")
+  RUNNING   @map("running")
+  SUCCESS   @map("success")
+  FAILED    @map("failed")
+  PARTIAL   @map("partial")
+
+  @@map("execution_status")
+}
