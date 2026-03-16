@@ -170,7 +170,7 @@ function App() {
   return (
     <div className="flex h-screen w-screen bg-heropath-bg-primary">
       {/* 主对话区域 */}
-      <main className={`flex-1 flex flex-col relative transition-all duration-300 ${showSidebar ? 'w-[calc(100%-320px)]' : 'w-full'}`}>
+      <main className={`flex-1 flex flex-col relative transition-all duration-300 ${showSidebar ? 'lg:w-[calc(100%-320px)]' : 'w-full'}`}>
         {/* 顶部导航 */}
         <header className="flex justify-between items-center px-5 py-3 border-b border-heropath-border bg-heropath-bg-primary">
           <div className="flex items-center gap-2.5 text-lg font-semibold">
@@ -179,10 +179,18 @@ function App() {
           </div>
           <div className="flex gap-2 items-center">
             {detectedType && (
-              <div className="px-3 py-1.5 bg-heropath-accent-warm/20 border border-heropath-accent-warm/40 rounded-full text-sm text-heropath-accent-warm font-medium">
+              <div className="px-3 py-1.5 bg-heropath-accent-warm/20 border border-heropath-accent-warm/40 rounded-full text-sm text-heropath-accent-warm font-medium hidden sm:block">
                 {getTypeLabel(detectedType)?.emoji} {getTypeLabel(detectedType)?.text}
               </div>
             )}
+            {/* 侧边栏切换按钮 - 小屏幕显示 */}
+            <button 
+              className="lg:hidden w-9 h-9 rounded-lg border border-heropath-border bg-transparent text-heropath-text-secondary flex items-center justify-center text-lg transition-all hover:bg-heropath-bg-tertiary hover:text-heropath-text-primary" 
+              onClick={() => setShowSidebar(!showSidebar)}
+              title="切换故事大纲"
+            >
+              📋
+            </button>
             <button className="w-9 h-9 rounded-lg border border-heropath-border bg-transparent text-heropath-text-secondary flex items-center justify-center text-lg transition-all hover:bg-heropath-bg-tertiary hover:text-heropath-text-primary" title="新建故事">+</button>
           </div>
         </header>
@@ -303,9 +311,17 @@ function App() {
         </div>
       </main>
 
+      {/* 遮罩层 - 小屏幕下点击关闭侧边栏 */}
+      {showSidebar && (
+        <div 
+          className="fixed inset-0 bg-black/50 z-40 lg:hidden" 
+          onClick={() => setShowSidebar(false)}
+        />
+      )}
+
       {/* 侧边栏 - 故事元素（渐进展开） */}
       {showSidebar && (
-        <aside className="w-80 bg-heropath-bg-secondary border-l border-heropath-border flex flex-col animate-slide-in-right">
+        <aside className="w-80 bg-heropath-bg-secondary border-l border-heropath-border flex flex-col animate-slide-in-right fixed right-0 top-0 bottom-0 z-50 lg:relative lg:z-auto shadow-2xl lg:shadow-none">
           <div className="flex justify-between items-center px-5 py-4 border-b border-heropath-border">
             <h3 className="text-sm font-semibold text-heropath-text-secondary uppercase tracking-wider">故事大纲</h3>
             <button className="w-7 h-7 rounded-md border-none bg-transparent text-heropath-text-tertiary text-xl flex items-center justify-center transition-all hover:bg-heropath-bg-tertiary hover:text-heropath-text-primary" onClick={() => setShowSidebar(false)}>×</button>

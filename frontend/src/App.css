@@ -43,11 +43,8 @@
 }
 
 /* 响应式适配 */
-@media (max-width: 768px) {
-  .chat-container.with-sidebar {
-    width: 100%;
-  }
-  
+@media (max-width: 1024px) {
+  /* 平板及以下：侧边栏默认隐藏，显示切换按钮 */
   aside {
     position: fixed;
     right: 0;
@@ -55,5 +52,47 @@
     bottom: 0;
     z-index: 100;
     box-shadow: -4px 0 20px rgba(0, 0, 0, 0.5);
+  }
+}
+
+@media (max-width: 768px) {
+  /* 移动端优化 */
+  .chat-container.with-sidebar {
+    width: 100%;
+  }
+  
+  /* 移动端侧边栏全宽 */
+  aside {
+    width: 100% !important;
+    max-width: 320px;
+  }
+  
+  /* 消息区域全宽 */
+  .max-w-3xl {
+    max-width: 100% !important;
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  /* 移动端字体稍微缩小 */
+  .text-\[15px\] {
+    font-size: 14px !important;
+  }
+  
+  /* 移动端输入框优化 */
+  textarea {
+    font-size: 16px !important; /* 防止iOS缩放 */
+  }
+}
+
+@media (max-width: 480px) {
+  /* 小屏手机优化 */
+  header {
+    padding-left: 1rem !important;
+    padding-right: 1rem !important;
+  }
+  
+  .text-lg {
+    font-size: 1rem !important;
   }
 }
