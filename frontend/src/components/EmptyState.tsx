@@ -97,7 +97,7 @@ const WangDaoyanAvatar = ({
       <div className="absolute -inset-2 rounded-full bg-gradient-to-r from-amber-400/20 via-orange-500/20 to-amber-400/20 blur-lg animate-glow-rotate" />
       
       {/* 头像容器 */}
-      <div className="relative w-24 h-24 md:w-32 md:h-32 rounded-full flex items-center justify-center shadow-2xl" style={{ background: 'linear-gradient(135deg, #ffd93d 0%, #ff6b6b 50%, #ff9f43 100%)' }}>
+      <div className="relative w-32 h-32 md:w-40 md:h-40 rounded-full flex items-center justify-center shadow-2xl" style={{ background: 'linear-gradient(135deg, #ffd93d 0%, #ff6b6b 50%, #ff9f43 100%)' }}>
         {/* 王编导简笔插画 */}
         <svg 
           viewBox="0 0 100 100" 

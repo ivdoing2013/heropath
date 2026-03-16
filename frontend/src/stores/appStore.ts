@@ -196,7 +196,7 @@ const generateStarfield = (count: number): Star[] => {
       id: i,
       x: Math.max(5, Math.min(95, x)),
       y: Math.max(5, Math.min(95, y)),
-      size: 2 + Math.random() * 3,
+      size: 3 + Math.random() * 4,
       brightness: 0.2 + Math.random() * 0.4,
       twinkleSpeed: 2000 + Math.random() * 6000,
       unlockAt: i / count,
