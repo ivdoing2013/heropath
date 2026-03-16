@@ -1,11 +1,16 @@
-// 动画组件
-export { StarField, WangAvatar, HeartbeatButton, ProgressTorch, TypewriterCursor } from './Animations'
+// 核心状态组件
+export { EmptyState } from './EmptyState'
+export { ChattingState } from './ChattingState'
+export { CreatingState } from './CreatingState'
 
-// 消息组件
+// 原有组件
 export { MessageBubble, TypingIndicator, QuickSuggestions } from './MessageComponents'
-
-// 侧边栏
+export { SmartInput } from './SmartInput'
 export { StorySidebar } from './StorySidebar'
-
-// 智能输入
-export { SmartInput, ContextualSuggestions } from './SmartInput'
+export { 
+  StarField, 
+  WangAvatar, 
+  HeartbeatButton, 
+  ProgressTorch, 
+  TypewriterCursor 
+} from './Animations'

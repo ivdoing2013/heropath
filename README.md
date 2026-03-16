@@ -4,10 +4,12 @@
 
 HeroPath 是一个基于「英雄之旅」故事结构模型的AI辅助创作平台，为中文创作者提供深度陪伴式写作体验。无论你是写抒情散文、言情小说还是英雄冒险故事，王编导都会手持火把，陪你穿越创作的黑暗森林。
 
-![Version](https://img.shields.io/badge/version-0.1.0-blue.svg)
+![Version](https://img.shields.io/badge/version-0.2.0-blue.svg)
 ![License](https://img.shields.io/badge/license-MIT-green.svg)
 ![React](https://img.shields.io/badge/React-18-61DAFB.svg)
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6.svg)
+
+---
 
 ## ✨ 核心特性
 
@@ -23,7 +25,7 @@ HeroPath 是一个基于「英雄之旅」故事结构模型的AI辅助创作平
 
 ### 💗 心跳时刻系统
 - 自动检测创作高光时刻
-- 一键标记珍贵灵感
+- 一键标记珍贵灵感（快捷键：Ctrl+H）
 - 完整的创作旅程回顾
 
 ### 📜 版本控制
@@ -36,13 +38,14 @@ HeroPath 是一个基于「英雄之旅」故事结构模型的AI辅助创作平
 - 实时进度追踪
 - 阶段性成果展示
 
+---
+
 ## 🚀 快速开始
 
 ### 环境要求
 - Node.js >= 18.0.0
 - pnpm >= 8.0.0
 - PostgreSQL >= 14
-- Redis >= 6
 
 ### 安装步骤
 
@@ -51,120 +54,158 @@ HeroPath 是一个基于「英雄之旅」故事结构模型的AI辅助创作平
 git clone https://github.com/heropath/heropath.git
 cd heropath
 
-# 2. 安装依赖
+# 2. 安装前端依赖
+cd frontend
 pnpm install
 
-# 3. 配置环境变量
+# 3. 安装后端依赖
+cd ../backend
+pnpm install
+
+# 4. 配置环境变量
 cp .env.example .env
-# 编辑 .env 文件，配置数据库和API密钥
+# 编辑 .env 文件，配置数据库和DeepSeek API密钥
 
-# 4. 初始化数据库
-pnpm db:migrate
-pnpm db:seed
+# 5. 初始化数据库
+npx prisma migrate dev
+npx prisma generate
 
-# 5. 启动开发服务器
+# 6. 启动开发服务器
+# 终端1：启动后端
+cd backend
+pnpm dev
+
+# 终端2：启动前端
+cd frontend
 pnpm dev
 ```
 
-访问 http://localhost:3000 开始创作！
+访问 http://localhost:5173 开始创作！
+
+---
 
 ## 📁 项目结构
 
 ```
 heropath/
-├── apps/
-│   ├── web/                    # 前端应用 (React + Vite)
-│   ├── api/                    # 后端API (Node.js + Express)
-│   └── websocket/              # WebSocket服务
-├── packages/
-│   ├── shared/                 # 共享类型和工具
-│   ├── ui/                     # UI组件库
-│   ├── skills/                 # Skill系统核心
-│   └── prompts/                # Prompt模板
-├── docs/                       # 文档
-├── .github/
-│   └── workflows/              # CI/CD配置
-└── docker-compose.yml          # 开发环境配置
+├── frontend/              # 前端应用 (React + Vite)
+│   ├── src/
+│   │   ├── components/    # React组件
+│   │   │   ├── EmptyState.tsx      # 空状态界面
+│   │   │   ├── ChattingState.tsx   # 对话状态
+│   │   │   └── CreatingState.tsx   # 创作状态
+│   │   ├── stores/        # Zustand状态管理
+│   │   │   ├── appStore.ts
+│   │   │   ├── chatStore.ts
+│   │   │   └── storyStore.ts
+│   │   └── utils/         # 工具函数
+│   ├── dist/              # 构建输出
+│   └── package.json
+│
+├── backend/               # 后端API (Express + TypeScript)
+│   ├── src/
+│   │   ├── controllers/   # 控制器
+│   │   ├── routes/        # 路由定义
+│   │   ├── services/      # 业务逻辑
+│   │   ├── models/        # 数据模型
+│   │   └── middleware/    # 中间件
+│   └── package.json
+│
+├── tests/                 # 测试用例
+│   ├── unit/              # 单元测试
+│   ├── integration/       # 集成测试
+│   └── e2e/               # E2E测试
+│
+├── docs/                  # 项目文档
+├── PROJECT_SUMMARY.md     # 项目总结
+├── PROGRESS.md            # 进度追踪
+└── DEPLOYMENT.md          # 部署指南
 ```
+
+---
 
 ## 🛠️ 技术栈
 
 ### 前端
-- **框架**: React 18 + TypeScript
-- **构建**: Vite 5
-- **状态管理**: Zustand + Immer
-- **样式**: Tailwind CSS
-- **编辑器**: TipTap (ProseMirror)
-- **动画**: Framer Motion
+| 技术 | 用途 |
+|------|------|
+| React 18 | UI框架 |
+| TypeScript | 类型安全 |
+| Vite 5 | 构建工具 |
+| Zustand | 状态管理 |
+| Tailwind CSS | 样式方案 |
+| Framer Motion | 动画效果 |
 
 ### 后端
-- **API**: Node.js + Express
-- **数据库**: PostgreSQL + Prisma ORM
-- **缓存**: Redis
-- **实时通信**: Socket.io
-- **队列**: BullMQ
+| 技术 | 用途 |
+|------|------|
+| Express | Web框架 |
+| TypeScript | 类型安全 |
+| PostgreSQL | 数据库 |
+| Prisma | ORM |
+| DeepSeek API | AI服务 |
 
-### AI/LLM
-- **模型**: GPT-4 / Claude 3
-- **Prompt管理**: 模板引擎 + 热更新
-- **上下文管理**: 分层压缩策略
+---
 
 ## 📝 开发指南
 
-详细开发规范请查看 [开发指南](./docs/development-guide.md)
-
-快速参考：
+### 常用命令
 
 ```bash
-# 启动所有服务
-pnpm dev
+# 前端开发
+cd frontend
+pnpm dev          # 启动开发服务器
+pnpm build        # 构建生产版本
+pnpm test         # 运行测试
 
-# 仅启动前端
-pnpm dev:web
+# 后端开发
+cd backend
+pnpm dev          # 启动开发服务器
+pnpm build        # 构建生产版本
+pnpm test         # 运行测试
 
-# 仅启动后端
-pnpm dev:api
-
-# 运行测试
-pnpm test
-
-# 构建生产版本
-pnpm build
-
-# 代码检查
-pnpm lint
-pnpm type-check
+# 数据库操作
+cd backend
+npx prisma migrate dev    # 创建迁移
+npx prisma migrate deploy # 部署迁移
+npx prisma studio         # 打开数据库管理界面
 ```
+
+---
 
 ## 🎯 产品路线图
 
-### MVP (v0.1.0) - 当前
-- [x] 核心Skill系统
-- [x] 基础UI框架
-- [x] 王编导对话系统
-- [x] 自动保存功能
+### v0.2.0 (当前)
+- [x] 对话式UI重构
+- [x] 四大界面状态
+- [x] 心跳标记系统
+- [x] DeepSeek流式聊天
 
-### v0.2.0
+### v0.3.0 (开发中)
 - [ ] 完整12阶段引导
-- [ ] 心跳时刻系统
-- [ ] 版本控制功能
 - [ ] 黄金三章生成
+- [ ] 故事地图可视化
+- [ ] 版本控制功能
 
-### v0.3.0
-- [ ] 三种创作者类型完整支持
-- [ ] 故事脉络可视化
-- [ ] 金句收集功能
-- [ ] 日志回放系统
-
-### v1.0.0
+### v1.0.0 (规划中)
+- [ ] 62个Skill完整实现
 - [ ] 移动端适配
 - [ ] 推送服务
 - [ ] 协作功能
-- [ ] 性能优化
+
+---
+
+## 📚 文档
+
+- [项目总结](./PROJECT_SUMMARY.md) - 项目概述、技术架构、功能清单
+- [进度追踪](./PROGRESS.md) - 开发进度、待办事项、已知问题
+- [部署指南](./DEPLOYMENT.md) - 前端/后端部署、数据库配置
+- [UI重构设计](./../heropath_ui_redesign_conversational_design.md) - 对话式创作体验设计
+- [测试策略](./tests/TEST_STRATEGY.md) - 测试计划与用例
+
+---
 
 ## 🤝 贡献指南
-
-我们欢迎所有形式的贡献！
 
 1. Fork 本仓库
 2. 创建特性分支 (`git checkout -b feature/AmazingFeature`)
@@ -172,14 +213,13 @@ pnpm type-check
 4. 推送到分支 (`git push origin feature/AmazingFeature`)
 5. 打开 Pull Request
 
-请确保：
-- 代码符合我们的 [开发规范](./docs/development-guide.md)
-- 所有测试通过
-- 提交信息清晰规范
+---
 
 ## 📄 许可证
 
 本项目采用 [MIT](./LICENSE) 许可证
+
+---
 
 ## 🙏 致谢
 
@@ -187,9 +227,10 @@ pnpm type-check
 - 感谢所有早期测试创作者的反馈
 - 特别感谢开源社区的支持
 
+---
+
 ## 📮 联系我们
 
-- 官方网站: https://heropath.app
 - 问题反馈: https://github.com/heropath/heropath/issues
 - 邮件联系: hello@heropath.app
 
