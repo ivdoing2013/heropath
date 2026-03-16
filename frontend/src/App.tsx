@@ -233,7 +233,7 @@ function App() {
             ))}
 
             {/* 流式输出 */}
-            {isTyping && streamingText && (
+            {isTyping && streamingText ? (
               <div className="flex gap-4 items-start animate-fade-in-up">
                 <div className="w-9 h-9 shrink-0 relative">
                   <div className="w-full h-full relative flex items-center justify-center">
@@ -249,10 +249,10 @@ function App() {
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
 
             {/* 思考中 */}
-            {isTyping && !streamingText && (
+            {isTyping && !streamingText ? (
               <div className="flex gap-4 items-start animate-fade-in-up">
                 <div className="w-9 h-9 shrink-0 relative">
                   <div className="w-full h-full relative flex items-center justify-center">
@@ -269,7 +269,7 @@ function App() {
                   </div>
                 </div>
               </div>
-            )}
+            ) : null}
 
             <div ref={messagesEndRef} />
           </div>
