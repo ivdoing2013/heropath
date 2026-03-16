@@ -4,10 +4,17 @@ import { ChatService } from '../services/chat';
 
 // 请求验证模式
 const ChatRequestSchema = z.object({
-  message: z.string().min(1, '消息不能为空').max(10000, '消息过长'),
-  chapterId: z.string().uuid().optional(),
-  novelId: z.string().uuid().optional(),
+  messages: z.array(z.object({
+    role: z.enum(['system', 'user', 'assistant']),
+    content: z.string(),
+  })),
   stream: z.boolean().optional().default(true),
+});
+
+// 简单的非流式聊天请求
+const SimpleChatRequestSchema = z.object({
+  message: z.string().min(1, '消息不能为空').max(10000, '消息过长'),
+  stream: z.boolean().optional().default(false),
 });
 
 // 聊天控制器
@@ -17,81 +24,75 @@ export const ChatController = {
     try {
       // 验证请求
       const validated = ChatRequestSchema.parse(req.body);
-      const { message, chapterId, novelId } = validated;
+      const { messages, stream } = validated;
 
-      // 设置SSE头
-      res.setHeader('Content-Type', 'text/event-stream');
-      res.setHeader('Cache-Control', 'no-cache');
-      res.setHeader('Connection', 'keep-alive');
-      res.setHeader('X-Accel-Buffering', 'no');
+      if (stream) {
+        // 设置SSE头
+        res.setHeader('Content-Type', 'text/event-stream');
+        res.setHeader('Cache-Control', 'no-cache');
+        res.setHeader('Connection', 'keep-alive');
+        res.setHeader('X-Accel-Buffering', 'no');
+        res.setHeader('Access-Control-Allow-Origin', '*');
 
-      // 发送初始事件
-      res.write('event: start\n');
-      res.write(`data: ${JSON.stringify({ status: 'started' })}\n\n`);
+        // 发送初始事件
+        res.write(`data: ${JSON.stringify({ choices: [{ delta: { role: 'assistant' }, index: 0 }] })}\n\n`);
 
-      // 获取历史对话
-      const history = chapterId || novelId 
-        ? await ChatService.getHistory(chapterId, novelId, 10)
-        : [];
+        // 流式响应
+        const streamGenerator = ChatService.streamChat(messages);
 
-      // 流式响应
-      const stream = ChatService.streamChat(message, {
-        chapterId,
-        novelId,
-        history: history.map(h => ({ role: h.role, content: h.content })),
-      });
+        for await (const chunk of streamGenerator) {
+          res.write(`data: ${JSON.stringify({ choices: [{ delta: { content: chunk }, index: 0 }] })}\n\n`);
+        }
 
-      for await (const chunk of stream) {
-        res.write('event: message\n');
-        res.write(`data: ${JSON.stringify({ content: chunk })}\n\n`);
+        // 发送结束标记
+        res.write('data: [DONE]\n\n');
+        res.end();
+      } else {
+        // 非流式响应
+        const response = await ChatService.chat(messages);
+        res.json({
+          success: true,
+          data: {
+            content: response,
+            role: 'assistant',
+          },
+        });
       }
-
-      // 发送结束事件
-      res.write('event: end\n');
-      res.write(`data: ${JSON.stringify({ status: 'completed' })}\n\n`);
-      res.end();
-
     } catch (error) {
       console.error('[ChatController] 流式聊天错误:', error);
       
       if (error instanceof z.ZodError) {
-        res.status(400).json({
-          success: false,
-          error: '请求参数错误',
-          details: error.errors,
-        });
+        if (!res.headersSent) {
+          res.status(400).json({
+            success: false,
+            error: '请求参数错误',
+            details: error.errors,
+          });
+        }
         return;
       }
 
-      // 如果是SSE已经开始，发送错误事件
       if (!res.headersSent) {
         res.status(500).json({
           success: false,
           error: '服务器内部错误',
         });
       } else {
-        res.write('event: error\n');
         res.write(`data: ${JSON.stringify({ error: '生成回复时出错' })}\n\n`);
         res.end();
       }
     }
   },
 
-  // 非流式聊天
+  // 简单的非流式聊天接口
   chat: async (req: Request, res: Response): Promise<void> => {
     try {
-      const validated = ChatRequestSchema.parse(req.body);
-      const { message, chapterId, novelId } = validated;
+      const validated = SimpleChatRequestSchema.parse(req.body);
+      const { message } = validated;
 
-      const history = chapterId || novelId 
-        ? await ChatService.getHistory(chapterId, novelId, 10)
-        : [];
-
-      const response = await ChatService.chat(message, {
-        chapterId,
-        novelId,
-        history: history.map(h => ({ role: h.role, content: h.content })),
-      });
+      const response = await ChatService.chat([
+        { role: 'user', content: message }
+      ]);
 
       res.json({
         success: true,
@@ -100,7 +101,6 @@ export const ChatController = {
           role: 'assistant',
         },
       });
-
     } catch (error) {
       console.error('[ChatController] 聊天错误:', error);
       
@@ -120,29 +120,12 @@ export const ChatController = {
     }
   },
 
-  // 获取对话历史
-  getHistory: async (req: Request, res: Response): Promise<void> => {
-    try {
-      const { chapterId, novelId, limit } = req.query;
-
-      const history = await ChatService.getHistory(
-        chapterId as string | undefined,
-        novelId as string | undefined,
-        limit ? parseInt(limit as string, 10) : 20
-      );
-
-      res.json({
-        success: true,
-        data: history,
-      });
-
-    } catch (error) {
-      console.error('[ChatController] 获取历史错误:', error);
-      res.status(500).json({
-        success: false,
-        error: '服务器内部错误',
-      });
-    }
+  // 获取对话历史（简化版本）
+  getHistory: async (_req: Request, res: Response): Promise<void> => {
+    res.json({
+      success: true,
+      data: [],
+    });
   },
 };
 

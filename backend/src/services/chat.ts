@@ -1,26 +1,4 @@
 import OpenAI from 'openai';
-import { ConversationModel, CreateConversationInput } from '../models';
-
-// 系统提示词 - 王编导角色
-const SYSTEM_PROMPT = `你是王编导，一位资深的网文编辑和创作顾问，擅长帮助作者优化小说创作。
-
-你的职责：
-1. 帮助作者分析情节结构，提供专业的叙事建议
-2. 识别故事中的亮点和需要改进的地方
-3. 在关键情节点给出针对性的指导
-4. 鼓励作者的同时保持专业态度
-
-你的风格：
-- 专业但不失亲和
-- 善于发现作品的闪光点
-- 能够一针见血地指出问题
-- 提供具体可行的改进建议
-- 使用中文回复
-
-回复格式：
-- 先简要回应作者的内容
-- 然后给出具体的分析和建议
-- 最后可以提出引导性的问题帮助作者思考`;
 
 // DeepSeek 客户端
 const createDeepSeekClient = (): OpenAI => {
@@ -30,67 +8,90 @@ const createDeepSeekClient = (): OpenAI => {
   });
 };
 
+// 消息类型
+export interface ChatMessage {
+  role: 'system' | 'user' | 'assistant';
+  content: string;
+}
+
+// 系统提示词 - 王编导角色
+const getSystemPrompt = (): string => {
+  return `你是王编导，一位资深的网文编辑和创作顾问，擅长帮助作者从灵感到成稿。
+
+## 你的职责
+1. 通过对话引导作者明确创作方向
+2. 帮助梳理故事核心要素（人物、世界观、情节）
+3. 在关键节点生成结构化的故事卡片
+4. 识别故事类型（抒情散文/男欢女爱/英雄之旅）
+5. 当故事要素足够完整时，引导进入创作阶段
+
+## 你的风格
+- 温暖而专业，像一位经验丰富的导师
+- 善于发现作品的闪光点
+- 能够一针见血地指出问题
+- 提供具体可行的改进建议
+- 使用中文回复
+
+## 故事类型识别
+- 抒情散文：侧重情感表达、意境营造
+- 男欢女爱：以爱情关系为核心的故事
+- 英雄之旅：主角经历挑战、获得成长的冒险故事
+
+## 回复格式
+当你收集到足够信息时，可以在回复末尾添加结构化数据：
+
+---STORY_ELEMENT---
+类型: character|world|plot|scene
+标题: 简短标题
+内容: |
+  详细内容，支持多行
+---END---
+
+---SUGGESTIONS---
+- 建议回复1
+- 建议回复2
+- 建议回复3
+---END---
+
+当故事准备就绪时，添加：
+---ACTION---
+action: start_creating
+message: 开始创作吧！
+---END---`;
+};
+
 // AI 聊天服务
 export const ChatService = {
   // 流式聊天（SSE）
   streamChat: async function* (
-    userMessage: string,
-    context?: { chapterId?: string; novelId?: string; history?: any[] }
+    messages: ChatMessage[]
   ): AsyncGenerator<string, void, unknown> {
     const client = createDeepSeekClient();
 
-    // 构建消息历史
-    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+    // 构建完整消息列表
+    const fullMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      { role: 'system', content: getSystemPrompt() },
+      ...messages.map(m => ({
+        role: m.role,
+        content: m.content,
+      }))
     ];
-
-    // 添加历史对话
-    if (context?.history && context.history.length > 0) {
-      for (const msg of context.history) {
-        messages.push({
-          role: msg.role,
-          content: msg.content,
-        });
-      }
-    }
-
-    // 添加用户消息
-    messages.push({ role: 'user', content: userMessage });
 
     try {
       const stream = await client.chat.completions.create({
         model: 'deepseek-chat',
-        messages,
+        messages: fullMessages,
         stream: true,
-        temperature: 0.7,
-        max_tokens: 4000,
+        temperature: 0.8,
+        max_tokens: 2000,
       });
-
-      let fullResponse = '';
 
       for await (const chunk of stream) {
         const content = chunk.choices[0]?.delta?.content || '';
         if (content) {
-          fullResponse += content;
           yield content;
         }
       }
-
-      // 保存对话记录
-      await this.saveConversation({
-        chapterId: context?.chapterId,
-        novelId: context?.novelId,
-        role: 'user',
-        content: userMessage,
-      });
-
-      await this.saveConversation({
-        chapterId: context?.chapterId,
-        novelId: context?.novelId,
-        role: 'assistant',
-        content: fullResponse,
-        model: 'deepseek-chat',
-      });
     } catch (error) {
       console.error('[ChatService] 流式聊天错误:', error);
       throw error;
@@ -98,80 +99,36 @@ export const ChatService = {
   },
 
   // 非流式聊天（用于测试或简单场景）
-  chat: async (
-    userMessage: string,
-    context?: { chapterId?: string; novelId?: string; history?: any[] }
-  ): Promise<string> => {
+  chat: async (messages: ChatMessage[]): Promise<string> => {
     const client = createDeepSeekClient();
 
-    const messages: OpenAI.Chat.ChatCompletionMessageParam[] = [
-      { role: 'system', content: SYSTEM_PROMPT },
+    const fullMessages: OpenAI.Chat.ChatCompletionMessageParam[] = [
+      { role: 'system', content: getSystemPrompt() },
+      ...messages.map(m => ({
+        role: m.role,
+        content: m.content,
+      }))
     ];
-
-    if (context?.history && context.history.length > 0) {
-      for (const msg of context.history) {
-        messages.push({
-          role: msg.role,
-          content: msg.content,
-        });
-      }
-    }
-
-    messages.push({ role: 'user', content: userMessage });
 
     try {
       const response = await client.chat.completions.create({
         model: 'deepseek-chat',
-        messages,
-        temperature: 0.7,
-        max_tokens: 4000,
+        messages: fullMessages,
+        temperature: 0.8,
+        max_tokens: 2000,
       });
 
-      const content = response.choices[0]?.message?.content || '';
-
-      // 保存对话记录
-      await ChatService.saveConversation({
-        chapterId: context?.chapterId,
-        novelId: context?.novelId,
-        role: 'user',
-        content: userMessage,
-      });
-
-      await ChatService.saveConversation({
-        chapterId: context?.chapterId,
-        novelId: context?.novelId,
-        role: 'assistant',
-        content,
-        model: 'deepseek-chat',
-        tokensUsed: response.usage?.total_tokens,
-      });
-
-      return content;
+      return response.choices[0]?.message?.content || '';
     } catch (error) {
       console.error('[ChatService] 聊天错误:', error);
       throw error;
     }
   },
 
-  // 保存对话记录
-  saveConversation: async (input: CreateConversationInput): Promise<void> => {
-    try {
-      await ConversationModel.create(input);
-    } catch (error) {
-      console.error('[ChatService] 保存对话记录失败:', error);
-      // 不抛出错误，避免影响主流程
-    }
-  },
-
-  // 获取对话历史
-  getHistory: async (chapterId?: string, novelId?: string, limit: number = 20) => {
-    if (chapterId) {
-      return await ConversationModel.findByChapterId(chapterId, limit);
-    } else if (novelId) {
-      return await ConversationModel.findByNovelId(novelId, limit);
-    } else {
-      return await ConversationModel.findRecent(limit);
-    }
+  // 获取对话历史（简化版本，不依赖数据库）
+  getHistory: async (_chapterId?: string, _novelId?: string, limit: number = 20) => {
+    // 返回空数组，因为历史由前端维护
+    return [];
   },
 };
 

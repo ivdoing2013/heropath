@@ -9,7 +9,7 @@ export type UIState = 'empty' | 'chatting' | 'creating' | 'completed'
 
 export type MessageSender = 'wang' | 'user'
 
-export type MessageType = 'text' | 'story-card' | 'character-card' | 'world-card' | 'suggestion'
+export type MessageType = 'text' | 'story-card' | 'character-card' | 'world-card' | 'suggestion' | 'skill-unlock'
 
 export interface Message {
   id: string
